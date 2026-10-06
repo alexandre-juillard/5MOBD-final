@@ -1,0 +1,85 @@
+appId: host.exp.exponent
+name: Avis d'un utilisateur sur l'adresse publique d'un autre
+tags:
+  - social
+env:
+  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+---
+- runFlow: subflows/ouvrir-application.yaml
+- evalScript: ${output.horodatage = Date.now()}
+- evalScript: ${output.emailProprietaire = 'maestro.proprietaire.' + output.horodatage + '@exemple.fr'}
+- evalScript: ${output.emailVisiteur = 'maestro.visiteur.' + output.horodatage + '@exemple.fr'}
+- evalScript: ${output.adresse = 'Terrasse partagée ' + output.horodatage}
+- runFlow:
+    file: subflows/inscription.yaml
+    env:
+      NOM: Claire Proprietaire
+      EMAIL: ${output.emailProprietaire}
+      MOT_DE_PASSE: Maestro123
+- runFlow:
+    file: subflows/creer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adresse}
+      PUBLIQUE: "true"
+- runFlow: subflows/deconnexion.yaml
+- runFlow:
+    file: subflows/inscription.yaml
+    env:
+      NOM: Hugo Visiteur
+      EMAIL: ${output.emailVisiteur}
+      MOT_DE_PASSE: Maestro123
+- tapOn:
+    id: "onglet-explorer"
+- tapOn:
+    id: "champ-recherche"
+- inputText: ${output.adresse}
+- extendedWaitUntil:
+    visible: "Partagée par Claire Proprietaire"
+    timeout: 20000
+- tapOn:
+    id: "carte-adresse-.*"
+- extendedWaitUntil:
+    visible:
+      id: "formulaire-avis"
+    timeout: 15000
+- assertVisible:
+    id: "detail-note-moyenne"
+    text: "Aucun avis"
+- tapOn:
+    id: "etoile-4"
+- tapOn:
+    id: "champ-commentaire"
+- inputText: "Super terrasse, testée par Maestro"
+- tapOn: "Donner mon avis"
+- scrollUntilVisible:
+    element:
+      id: "bouton-publier-avis"
+    direction: DOWN
+- tapOn:
+    id: "bouton-publier-avis"
+- extendedWaitUntil:
+    visible: "Modifier mon avis"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: "Super terrasse, testée par Maestro"
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      id: "detail-note-moyenne"
+    direction: UP
+- assertVisible:
+    id: "detail-note-moyenne"
+    text: "4,0/5 · 1 avis"
+- back
+- runFlow: subflows/deconnexion.yaml
+- runFlow:
+    file: subflows/connexion.yaml
+    env:
+      EMAIL: ${output.emailProprietaire}
+      MOT_DE_PASSE: Maestro123
+- runFlow:
+    file: subflows/supprimer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adresse}
+- runFlow: subflows/deconnexion.yaml

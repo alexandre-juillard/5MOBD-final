@@ -1,0 +1,9 @@
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01-inscription
+    - 02-connexion
+    - 03-adresses
+    - 04-avis

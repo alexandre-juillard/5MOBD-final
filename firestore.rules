@@ -1,0 +1,104 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estConnecte() {
+      return request.auth != null;
+    }
+
+    function estUtilisateur(uid) {
+      return estConnecte() && request.auth.uid == uid;
+    }
+
+    function texteValide(valeur, minimum, maximum) {
+      return valeur is string && valeur.size() >= minimum && valeur.size() <= maximum;
+    }
+
+    function urlPhotoValide(valeur) {
+      return valeur == null || (valeur is string && valeur.size() <= 2048);
+    }
+
+    function profilValide(donnees) {
+      return donnees.keys().hasOnly(['nom', 'photoUrl', 'creeLe'])
+        && donnees.keys().hasAll(['nom', 'photoUrl', 'creeLe'])
+        && texteValide(donnees.nom, 2, 50)
+        && urlPhotoValide(donnees.photoUrl);
+    }
+
+    function adresseValide(donnees) {
+      return donnees.keys().hasOnly(['proprietaireId', 'proprietaireNom', 'nom', 'description', 'photoUrl', 'latitude', 'longitude', 'adresseTexte', 'estPublique', 'creeLe'])
+        && donnees.keys().hasAll(['proprietaireId', 'proprietaireNom', 'nom', 'description', 'photoUrl', 'latitude', 'longitude', 'adresseTexte', 'estPublique', 'creeLe'])
+        && texteValide(donnees.proprietaireNom, 1, 50)
+        && texteValide(donnees.nom, 2, 80)
+        && texteValide(donnees.description, 0, 500)
+        && texteValide(donnees.adresseTexte, 0, 300)
+        && urlPhotoValide(donnees.photoUrl)
+        && donnees.latitude is number && donnees.latitude >= -90 && donnees.latitude <= 90
+        && donnees.longitude is number && donnees.longitude >= -180 && donnees.longitude <= 180
+        && donnees.estPublique is bool;
+    }
+
+    function avisValide(donnees, auteurId) {
+      return donnees.keys().hasOnly(['auteurId', 'auteurNom', 'auteurPhotoUrl', 'note', 'commentaire', 'photoUrl', 'creeLe'])
+        && donnees.keys().hasAll(['auteurId', 'auteurNom', 'auteurPhotoUrl', 'note', 'commentaire', 'photoUrl', 'creeLe'])
+        && donnees.auteurId == auteurId
+        && texteValide(donnees.auteurNom, 1, 50)
+        && urlPhotoValide(donnees.auteurPhotoUrl)
+        && donnees.note is int && donnees.note >= 1 && donnees.note <= 5
+        && texteValide(donnees.commentaire, 0, 1000)
+        && urlPhotoValide(donnees.photoUrl)
+        && (donnees.commentaire.size() > 0 || donnees.photoUrl != null)
+        && donnees.creeLe == request.time;
+    }
+
+    match /utilisateurs/{uid} {
+      allow read: if estConnecte();
+      allow create: if estUtilisateur(uid)
+        && profilValide(request.resource.data)
+        && request.resource.data.creeLe == request.time;
+      allow update: if estUtilisateur(uid)
+        && profilValide(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom', 'photoUrl']);
+      allow delete: if false;
+    }
+
+    match /adresses/{adresseId} {
+
+      function adresseParente() {
+        return get(/databases/$(database)/documents/adresses/$(adresseId)).data;
+      }
+
+      function estProprietaire() {
+        return estConnecte() && resource.data.proprietaireId == request.auth.uid;
+      }
+
+      allow read: if estConnecte()
+        && (resource.data.estPublique == true || resource.data.proprietaireId == request.auth.uid);
+      allow create: if estConnecte()
+        && request.resource.data.proprietaireId == request.auth.uid
+        && adresseValide(request.resource.data)
+        && request.resource.data.creeLe == request.time;
+      allow update: if estProprietaire()
+        && adresseValide(request.resource.data)
+        && request.resource.data.proprietaireId == resource.data.proprietaireId
+        && request.resource.data.creeLe == resource.data.creeLe;
+      allow delete: if estProprietaire();
+
+      match /avis/{auteurId} {
+        allow read: if estConnecte()
+          && (adresseParente().estPublique == true || adresseParente().proprietaireId == request.auth.uid);
+        allow create, update: if estUtilisateur(auteurId)
+          && avisValide(request.resource.data, auteurId)
+          && adresseParente().estPublique == true
+          && adresseParente().proprietaireId != request.auth.uid;
+        allow delete: if estUtilisateur(auteurId)
+          || (estConnecte() && adresseParente().proprietaireId == request.auth.uid);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

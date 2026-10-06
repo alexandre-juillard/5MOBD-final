@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function estUtilisateur(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function imageValide() {
+      return request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{dossier}/{uid}/{fichier} {
+      allow read: if request.auth != null
+        && dossier in ['utilisateurs', 'adresses', 'avis'];
+      allow create, update: if estUtilisateur(uid)
+        && dossier in ['utilisateurs', 'adresses', 'avis']
+        && imageValide();
+      allow delete: if estUtilisateur(uid)
+        && dossier in ['utilisateurs', 'adresses', 'avis'];
+    }
+
+    match /{cheminRestant=**} {
+      allow read, write: if false;
+    }
+  }
+}

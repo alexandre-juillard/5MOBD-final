@@ -1,0 +1,15 @@
+appId: host.exp.exponent
+---
+- tapOn:
+    id: "connexion-email"
+- eraseText: 60
+- inputText: ${EMAIL}
+- tapOn:
+    id: "connexion-mot-de-passe"
+- eraseText: 30
+- inputText: ${MOT_DE_PASSE}
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: "ecran-carte"
+    timeout: 30000

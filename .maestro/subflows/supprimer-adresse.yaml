@@ -1,0 +1,20 @@
+appId: host.exp.exponent
+---
+- tapOn:
+    id: "onglet-mes-adresses"
+- tapOn: ${NOM_ADRESSE}
+- extendedWaitUntil:
+    visible:
+      id: "bouton-supprimer-adresse"
+    timeout: 15000
+- tapOn:
+    id: "bouton-supprimer-adresse"
+- runFlow:
+    file: confirmer-alerte.yaml
+    env:
+      LIBELLE_CONFIRMATION: "Supprimer"
+- extendedWaitUntil:
+    visible:
+      id: "ecran-mes-adresses"
+    timeout: 15000
+- assertNotVisible: ${NOM_ADRESSE}

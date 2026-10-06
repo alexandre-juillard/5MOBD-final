@@ -1,0 +1,30 @@
+appId: host.exp.exponent
+name: Inscription, profil et déconnexion
+tags:
+  - authentification
+env:
+  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+---
+- runFlow: subflows/ouvrir-application.yaml
+- evalScript: ${output.email = 'maestro.inscription.' + Date.now() + '@exemple.fr'}
+- runFlow:
+    file: subflows/inscription.yaml
+    env:
+      NOM: Jean Maestro
+      EMAIL: ${output.email}
+      MOT_DE_PASSE: Maestro123
+- assertVisible:
+    id: "onglet-mes-adresses"
+- assertVisible:
+    id: "onglet-explorer"
+- tapOn:
+    id: "onglet-profil"
+- assertVisible:
+    id: "nom-profil"
+    text: "Jean Maestro"
+- assertVisible: ${output.email}
+- assertVisible:
+    id: "photo-profil-galerie"
+- runFlow: subflows/deconnexion.yaml
+- assertVisible:
+    id: "bouton-connexion"

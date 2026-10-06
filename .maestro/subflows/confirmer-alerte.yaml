@@ -1,0 +1,13 @@
+appId: host.exp.exponent
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "android:id/button1"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: ${LIBELLE_CONFIRMATION}

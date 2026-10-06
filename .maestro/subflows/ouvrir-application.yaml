@@ -1,0 +1,22 @@
+appId: host.exp.exponent
+---
+- launchApp:
+    appId: host.exp.exponent
+    stopApp: true
+    permissions:
+      all: allow
+- openLink: ${EXPO_URL}
+- runFlow:
+    when:
+      visible: "(?i)^continue$"
+    commands:
+      - tapOn: "(?i)^continue$"
+- extendedWaitUntil:
+    visible:
+      id: "connexion-email|onglet-carte"
+    timeout: 120000
+- runFlow:
+    when:
+      visible:
+        id: "onglet-profil"
+    file: deconnexion.yaml

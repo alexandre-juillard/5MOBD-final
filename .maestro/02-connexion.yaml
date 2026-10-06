@@ -1,0 +1,41 @@
+appId: host.exp.exponent
+name: Connexion avec identifiants invalides puis valides
+tags:
+  - authentification
+env:
+  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+---
+- runFlow: subflows/ouvrir-application.yaml
+- evalScript: ${output.email = 'maestro.connexion.' + Date.now() + '@exemple.fr'}
+- runFlow:
+    file: subflows/inscription.yaml
+    env:
+      NOM: Marie Maestro
+      EMAIL: ${output.email}
+      MOT_DE_PASSE: Maestro123
+- runFlow: subflows/deconnexion.yaml
+- tapOn:
+    id: "bouton-connexion"
+- assertVisible:
+    id: "connexion-email-erreur"
+    text: "L'email est obligatoire."
+- tapOn:
+    id: "connexion-email"
+- inputText: ${output.email}
+- tapOn:
+    id: "connexion-mot-de-passe"
+- inputText: "MauvaisMotDePasse"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: "erreur-connexion"
+      text: "Email ou mot de passe incorrect."
+    timeout: 20000
+- runFlow:
+    file: subflows/connexion.yaml
+    env:
+      EMAIL: ${output.email}
+      MOT_DE_PASSE: Maestro123
+- assertVisible:
+    id: "onglet-carte"
+- runFlow: subflows/deconnexion.yaml

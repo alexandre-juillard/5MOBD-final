@@ -1,0 +1,70 @@
+appId: host.exp.exponent
+name: Création, filtrage et suppression d'adresses privées et publiques
+tags:
+  - adresses
+env:
+  EXPO_URL: ${EXPO_URL || "exp://127.0.0.1:8081"}
+---
+- runFlow: subflows/ouvrir-application.yaml
+- evalScript: ${output.horodatage = Date.now()}
+- evalScript: ${output.email = 'maestro.adresses.' + output.horodatage + '@exemple.fr'}
+- evalScript: ${output.adressePrivee = 'Coin secret ' + output.horodatage}
+- evalScript: ${output.adressePublique = 'Bistrot public ' + output.horodatage}
+- runFlow:
+    file: subflows/inscription.yaml
+    env:
+      NOM: Paul Maestro
+      EMAIL: ${output.email}
+      MOT_DE_PASSE: Maestro123
+- tapOn:
+    id: "onglet-mes-adresses"
+- assertVisible: "Aucune adresse"
+- tapOn:
+    id: "bouton-nouvelle-adresse"
+- tapOn:
+    id: "bouton-enregistrer-adresse"
+- assertVisible:
+    id: "emplacement-erreur"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "ecran-mes-adresses"
+    timeout: 10000
+- runFlow:
+    file: subflows/creer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adressePrivee}
+      PUBLIQUE: "false"
+- runFlow:
+    file: subflows/creer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adressePublique}
+      PUBLIQUE: "true"
+- tapOn:
+    id: "filtre-privees"
+- assertVisible: ${output.adressePrivee}
+- assertNotVisible: ${output.adressePublique}
+- tapOn:
+    id: "filtre-publiques"
+- assertVisible: ${output.adressePublique}
+- assertNotVisible: ${output.adressePrivee}
+- tapOn:
+    id: "filtre-toutes"
+- tapOn: ${output.adressePrivee}
+- extendedWaitUntil:
+    visible:
+      id: "detail-nom"
+      text: ${output.adressePrivee}
+    timeout: 15000
+- assertVisible: "Cette adresse est privée : elle n'est visible que par vous."
+- back
+- runFlow:
+    file: subflows/supprimer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adressePrivee}
+- runFlow:
+    file: subflows/supprimer-adresse.yaml
+    env:
+      NOM_ADRESSE: ${output.adressePublique}
+- assertVisible: "Aucune adresse"
+- runFlow: subflows/deconnexion.yaml

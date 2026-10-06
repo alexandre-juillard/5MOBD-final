@@ -1,0 +1,25 @@
+appId: host.exp.exponent
+---
+- tapOn:
+    id: "lien-inscription"
+- extendedWaitUntil:
+    visible:
+      id: "inscription-nom"
+    timeout: 10000
+- tapOn:
+    id: "inscription-nom"
+- inputText: ${NOM}
+- tapOn:
+    id: "inscription-email"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "inscription-mot-de-passe"
+- inputText: ${MOT_DE_PASSE}
+- tapOn:
+    id: "inscription-confirmation"
+- inputText: ${MOT_DE_PASSE}
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: "ecran-carte"
+    timeout: 30000

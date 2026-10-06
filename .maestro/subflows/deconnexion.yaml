@@ -1,0 +1,14 @@
+appId: host.exp.exponent
+---
+- tapOn:
+    id: "onglet-profil"
+- tapOn:
+    id: "bouton-deconnexion"
+- runFlow:
+    file: confirmer-alerte.yaml
+    env:
+      LIBELLE_CONFIRMATION: "Se déconnecter"
+- extendedWaitUntil:
+    visible:
+      id: "connexion-email"
+    timeout: 15000
