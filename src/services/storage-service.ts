@@ -18,6 +18,16 @@ export const compresserImage = async (uri: string): Promise<string> => {
 export const construireCheminImage = (dossier: DossierImage, utilisateurId: string, nomFichier: string): string =>
   `${dossier}/${utilisateurId}/${nomFichier}.jpg`;
 
+export const lireFichierEnBlob = (uri: string): Promise<Blob> =>
+  new Promise((resoudre, rejeter) => {
+    const requete = new XMLHttpRequest();
+    requete.onload = () => resoudre(requete.response as Blob);
+    requete.onerror = () => rejeter(new Error(`Lecture impossible du fichier ${uri}`));
+    requete.responseType = 'blob';
+    requete.open('GET', uri, true);
+    requete.send(null);
+  });
+
 export const televerserImage = async (
   uri: string,
   dossier: DossierImage,
@@ -25,10 +35,13 @@ export const televerserImage = async (
   nomFichier: string,
 ): Promise<string> => {
   const uriCompressee = await compresserImage(uri);
-  const reponse = await fetch(uriCompressee);
-  const contenu = await reponse.blob();
+  const contenu = await lireFichierEnBlob(uriCompressee);
   const reference = ref(stockage, construireCheminImage(dossier, utilisateurId, nomFichier));
-  await uploadBytes(reference, contenu, { contentType: 'image/jpeg' });
+  try {
+    await uploadBytes(reference, contenu, { contentType: 'image/jpeg' });
+  } finally {
+    (contenu as Blob & { close?: () => void }).close?.();
+  }
   return getDownloadURL(reference);
 };
 

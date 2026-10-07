@@ -1,8 +1,8 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 import { initialiserAuthentification } from './firebase-auth';
+import { initialiserBaseDeDonnees } from './firebase-firestore';
 
 const configurationFirebase = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'cle-non-configuree',
@@ -20,5 +20,5 @@ export const estFirebaseConfigure = Boolean(
 const application: FirebaseApp = getApps().length ? getApp() : initializeApp(configurationFirebase);
 
 export const authentification = initialiserAuthentification(application);
-export const baseDeDonnees = getFirestore(application);
+export const baseDeDonnees = initialiserBaseDeDonnees(application);
 export const stockage = getStorage(application);

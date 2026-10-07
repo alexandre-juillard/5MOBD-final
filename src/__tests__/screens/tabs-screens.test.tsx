@@ -92,13 +92,34 @@ describe('Écran Explorer', () => {
 });
 
 describe('Écran Carte', () => {
-  it('affiche un marqueur par adresse et propose l’ajout', async () => {
-    await render(<EcranCarte />);
+  const { scriptsInjectes } = jest.requireMock('react-native-webview') as { scriptsInjectes: string[] };
 
-    expect(await screen.findByTestId('marqueur-publique')).toBeOnTheScreen();
-    expect(screen.getByTestId('marqueur-privee')).toBeOnTheScreen();
-    expect(screen.getByTestId('marqueur-p1')).toBeOnTheScreen();
-    expect(screen.getByTestId('marqueur-p2')).toBeOnTheScreen();
+  const envoyerMessageCarte = (message: Record<string, unknown>) =>
+    fireEvent(screen.getByTestId('carte-adresses-webview'), 'message', {
+      nativeEvent: { data: JSON.stringify(message) },
+    });
+
+  beforeEach(() => {
+    scriptsInjectes.length = 0;
+  });
+
+  it('envoie un marqueur par adresse à la carte et propose l’ajout', async () => {
+    await render(<EcranCarte />);
+    expect(scriptsInjectes).toHaveLength(0);
+
+    await envoyerMessageCarte({ type: 'pret' });
+
+    await waitFor(() => expect(scriptsInjectes.some((script) => script.includes('mettreAJourCarte'))).toBe(true));
+    const derniereMiseAJour = [...scriptsInjectes].reverse().find((script) => script.includes('mettreAJourCarte'));
+    const etat = JSON.parse(derniereMiseAJour!.match(/mettreAJourCarte\((.*)\);true;$/)![1]);
+    expect(etat.marqueurs.map((marqueur: { id: string; estPersonnel: boolean }) => [marqueur.id, marqueur.estPersonnel])).toEqual([
+      ['publique', true],
+      ['privee', true],
+      ['p1', false],
+      ['p2', false],
+    ]);
+    expect(etat.position).toEqual({ latitude: 48.85, longitude: 2.35 });
+    expect(scriptsInjectes.some((script) => script.includes('recentrerCarte'))).toBe(true);
 
     await fireEvent.press(screen.getByTestId('bouton-ajouter-adresse'));
     expect(mockRouteur.push).toHaveBeenCalledWith('/address/new');
@@ -107,9 +128,18 @@ describe('Écran Carte', () => {
   it("ouvre le détail depuis l'infobulle d'un marqueur", async () => {
     await render(<EcranCarte />);
 
-    await fireEvent(await screen.findByTestId('marqueur-p1'), 'calloutPress');
+    await envoyerMessageCarte({ type: 'selection', id: 'p1' });
 
     expect(mockRouteur.push).toHaveBeenCalledWith({ pathname: '/address/[id]', params: { id: 'p1' } });
+  });
+
+  it('ignore les messages invalides de la carte', async () => {
+    await render(<EcranCarte />);
+
+    await fireEvent(screen.getByTestId('carte-adresses-webview'), 'message', { nativeEvent: { data: 'pas du json' } });
+    await envoyerMessageCarte({ type: 'selection', id: 42 });
+
+    expect(mockRouteur.push).not.toHaveBeenCalled();
   });
 });
 

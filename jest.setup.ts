@@ -35,13 +35,15 @@ jest.mock('expo-image-manipulator', () => ({
   },
 }));
 
-jest.mock('react-native-maps', () => {
+jest.mock('react-native-webview', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  const MapView = React.forwardRef((proprietes: Record<string, unknown>, reference: unknown) => {
-    React.useImperativeHandle(reference, () => ({ animateToRegion: jest.fn() }));
-    return React.createElement(View, { ...proprietes, testID: proprietes.testID ?? 'map-view' });
+  const scriptsInjectes: string[] = [];
+  const WebView = React.forwardRef((proprietes: Record<string, unknown>, reference: unknown) => {
+    React.useImperativeHandle(reference, () => ({
+      injectJavaScript: (script: string) => scriptsInjectes.push(script),
+    }));
+    return React.createElement(View, proprietes);
   });
-  const Marker = (proprietes: Record<string, unknown>) => React.createElement(View, proprietes);
-  return { __esModule: true, default: MapView, Marker };
+  return { __esModule: true, WebView, default: WebView, scriptsInjectes };
 });

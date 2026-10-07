@@ -22,7 +22,3 @@ export type ProprietesSelecteurEmplacement = {
   onChange: (coordonnees: Coordonnees) => void;
   style?: StyleProp<ViewStyle>;
 };
-
-export const deltaZoomVille = { latitudeDelta: 0.05, longitudeDelta: 0.05 };
-
-export const deltaZoomRue = { latitudeDelta: 0.01, longitudeDelta: 0.01 };

@@ -11,7 +11,7 @@ Fonctionnalités principales :
   - mes adresses (marqueurs orange) ;
   - les adresses publiques des autres utilisateurs (marqueurs bleus).
 
-  Sur mobile, la carte utilise MapView (`react-native-maps` : Google Maps sur Android, Plans sur iOS). Sur le web, elle utilise Leaflet et OpenStreetMap.
+  La carte repose sur OpenStreetMap avec Leaflet, sans clé d'API ni compte Google. Sur mobile, elle s'affiche dans une WebView (`react-native-webview`, inclus dans Expo Go) ; sur le web, elle utilise `react-leaflet`.
 - **Création d'adresse** : nom, description, photo, option **privée / publique**. L'emplacement se définit au choix :
   - par recherche d'une adresse texte (géocodage OpenStreetMap Nominatim) ;
   - en appuyant sur la carte ;
@@ -223,7 +223,7 @@ src/
 │   ├── (tabs)/            Carte, Mes adresses, Explorer, Profil
 │   └── address/           Création (new) et détail avec avis ([id])
 ├── components/            Composants d'interface (+ stories Storybook)
-│   └── map/               Carte native (react-native-maps) et web (Leaflet)
+│   └── map/               Carte Leaflet / OpenStreetMap (WebView sur mobile, react-leaflet sur le web)
 ├── config/                Initialisation de Firebase
 ├── constants/             Thème (couleurs, espacements)
 ├── context/               Contexte d'authentification
@@ -240,6 +240,7 @@ storage.rules              Règles de sécurité Storage
 
 ## Remarques
 
-- **Google Maps sur Android** : aucune clé n'est nécessaire dans Expo Go. Pour un build de production (EAS Build), ajoutez une clé Google Maps SDK for Android dans `app.json` (`android.config.googleMaps.apiKey`).
+- **Carte** : OpenStreetMap remplace Google Maps. Dans Expo Go, Google refuse la clé Maps intégrée à Expo Go sur Android, et la carte restait vide. Leaflet et ses tuiles sont chargés depuis Internet (unpkg.com et tile.openstreetmap.org), donc une connexion est nécessaire pour afficher la carte.
+- **Envoi des photos** : les fichiers sont lus avec `XMLHttpRequest`, car `fetch(...).blob()` renvoie sous Expo SDK 57 un Blob vide de 14 octets que Firebase Storage ne sait pas envoyer.
 - **Géocodage** : la recherche d'adresse utilise le service public [Nominatim](https://operations.osmfoundation.org/policies/nominatim/), limité à environ 1 requête par seconde.
 - **Photos** : les images sont redimensionnées (1080 px) et compressées en JPEG avant l'envoi, pour limiter l'utilisation de Firebase Storage.

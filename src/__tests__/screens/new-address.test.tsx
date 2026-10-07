@@ -92,8 +92,8 @@ describe("Écran de création d'adresse", () => {
   it('place le repère en appuyant sur la carte', async () => {
     await render(<EcranNouvelleAdresse />);
 
-    await fireEvent(screen.getByTestId('map-view'), 'press', {
-      nativeEvent: { coordinate: { latitude: 45.76, longitude: 4.83 } },
+    await fireEvent(screen.getByTestId('selecteur-emplacement-webview'), 'message', {
+      nativeEvent: { data: JSON.stringify({ type: 'clic', latitude: 45.76, longitude: 4.83 }) },
     });
 
     expect(await screen.findByTestId('emplacement-choisi')).toHaveTextContent('✓ 1 rue de Rivoli, Paris');
