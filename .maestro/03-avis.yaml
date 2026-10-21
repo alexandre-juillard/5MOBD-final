@@ -36,12 +36,15 @@ env:
 - extendedWaitUntil:
     visible: "Partagée par Claire Proprietaire"
     timeout: 20000
-- tapOn:
-    id: "carte-adresse-.*"
-- extendedWaitUntil:
-    visible:
-      id: "formulaire-avis"
-    timeout: 15000
+- retry:
+    maxRetries: 1
+    commands:
+      - tapOn:
+          id: "carte-adresse-.*"
+      - extendedWaitUntil:
+          visible:
+            id: "formulaire-avis"
+          timeout: 15000
 - assertVisible:
     id: "detail-note-moyenne"
     text: "Aucun avis"

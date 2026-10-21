@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 
 import EcranExplorer from '@/app/(tabs)/explore';
 import EcranCarte from '@/app/(tabs)/index';
@@ -79,6 +80,23 @@ describe('Écran Mes adresses', () => {
 });
 
 describe('Écran Explorer', () => {
+  it('ouvre une adresse après recherche en fermant le clavier sans consommer le premier appui', async () => {
+    const fermetureClavier = jest.spyOn(Keyboard, 'dismiss');
+
+    try {
+      await render(<EcranExplorer />);
+
+      await fireEvent.changeText(screen.getByTestId('champ-recherche'), 'louvre');
+      await fireEvent.press(screen.getByTestId('carte-adresse-p1'));
+
+      expect(fermetureClavier).toHaveBeenCalledTimes(1);
+      expect(mockRouteur.push).toHaveBeenCalledTimes(1);
+      expect(mockRouteur.push).toHaveBeenCalledWith({ pathname: '/address/[id]', params: { id: 'p1' } });
+    } finally {
+      fermetureClavier.mockRestore();
+    }
+  });
+
   it('affiche les adresses publiques des autres avec leur auteur et permet la recherche', async () => {
     await render(<EcranExplorer />);
 

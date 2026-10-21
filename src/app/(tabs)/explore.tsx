@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, TextInput, View } from 'react-native';
+import { FlatList, Keyboard, StyleSheet, TextInput, View } from 'react-native';
 
 import { CarteAdresse } from '@/components/address-card';
 import { EtatVide } from '@/components/empty-state';
@@ -29,12 +29,16 @@ export default function EcranExplorer() {
       </View>
       <FlatList
         data={resultats}
+        keyboardShouldPersistTaps="handled"
         keyExtractor={(adresse) => adresse.id}
         renderItem={({ item }) => (
           <CarteAdresse
             adresse={item}
             afficherProprietaire
-            onPress={(adresse) => routeur.push({ pathname: '/address/[id]', params: { id: adresse.id } })}
+            onPress={(adresse) => {
+              Keyboard.dismiss();
+              routeur.push({ pathname: '/address/[id]', params: { id: adresse.id } });
+            }}
           />
         )}
         contentContainerStyle={styles.liste}

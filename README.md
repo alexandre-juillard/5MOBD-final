@@ -181,9 +181,8 @@ Les flux se trouvent dans [.maestro](./.maestro) et s'exécutent dans **Expo Go*
 | Flux | Scénario |
 | --- | --- |
 | `01-inscription.yaml` | Inscription, vérification du profil, déconnexion |
-| `02-connexion.yaml` | Erreurs de connexion, puis connexion valide |
-| `03-adresses.yaml` | Création d'une adresse privée et d'une publique, filtres, détail, suppressions |
-| `04-avis.yaml` | Un utilisateur publie une adresse, un autre lui laisse une note et un commentaire |
+| `02-adresses.yaml` | Création d'une adresse privée et d'une publique, filtres, détail, suppressions |
+| `03-avis.yaml` | Un utilisateur publie une adresse, un autre lui laisse une note et un commentaire |
 
 Chaque flux crée des comptes et des adresses uniques (horodatés) dans votre projet Firebase.
 
